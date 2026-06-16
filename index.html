@@ -9,7 +9,7 @@
 body{margin:0;font-family:Segoe UI,sans-serif;background:#f3f4f6}
 #logoScreen{height:100vh;display:flex;flex-direction:column;justify-content:center;align-items:center;background:url("jersey.png") center/cover;color:#fff}
 #logoScreen img{width:180px}
-#logoScreen button{padding:8px 12px;font-size:20px;font-weight:bold;border:none;border-radius:8px;background:rgb(9, 143, 161)0;color:#fff}
+#logoScreen button{padding:8px 12px;font-size:20px;font-weight:bold;border:none;border-radius:8px;background:rgb(9, 143, 161);color:#fff}
 h1{color:rgb(9, 143, 161)}
 #app{display:none}
 .header{background:rgb(9, 143, 161);color:#fff;padding:20px;display:flex;align-items:center;gap:15px}
@@ -64,6 +64,13 @@ th{background:#0b1f4d;color:#fff}
 th,td{padding:10px;border:1px solid #ddd;text-align:center}
 .backBtn{margin:10px 0;padding:10px 15px;border:none;background:#d71920;color:#fff;border-radius:8px}
 select{width:100px;height:30px;font-size:15px;border-radius:10px;}
+.mainTabs button.active,
+.subTabs button.active,
+.playerTabs button.active{
+    box-shadow: inset 0 -4px 0 rgb(9,143,161);
+    color: rgb(9,143,161);
+    font-weight: bold;
+}
 </style>
 </head>
 <body>
@@ -73,16 +80,47 @@ select{width:100px;height:30px;font-size:15px;border-radius:10px;}
 </div>
 
 <div id="app">
-<div class="header"><img src="logo.png"><div><h2>HOYSALA</h2><div>🌍MSRIT,Bangalore</div></div></div>
-<div class="mainTabs">
-<button onclick="openTab('members')">MEMBERS</button>
-<button onclick="openTab('leaderboard')">LEADERBOARD</button>
+<div class="header">
+<img src="logo.png">
+<div>
+<h2>HOYSALA</h2>
+<div>🌍MSRIT,Bangalore</div>
 </div>
+</div>
+
+<div class="mainTabs">
+<button id="membersBtn" class="active" onclick="setActiveButton(this); openTab('members')">MEMBERS</button>
+<button onclick="setActiveButton(this); openTab('leaderboard')">LEADERBOARD</button>
+<button onclick="setActiveButton(this); openTab('details')">DETAILS</button>
+<button onclick="setActiveButton(this); openTab('insights')">INSIGHTS</button>
+</div>
+
 <div id="content" class="section"></div>
+
 </div>
 
 <script>
 let battingData=[],bowlingData=[];
+
+function extractRuns(best){
+    best = String(best).trim();
+
+    let match = best.match(/^(\d+)/);
+
+    return match ? parseInt(match[1]) : 0;
+}
+
+function extractWickets(spell){
+    let parts = String(spell).split("-");
+
+    return parseInt(parts[3]) || 0;
+}
+
+function extractRunsGiven(spell){
+    let parts = String(spell).split("-");
+
+    return parseInt(parts[2]) || 999;
+}
 
 fetch("HOYSALA_STATS.xlsx").then(r=>r.arrayBuffer()).then(d=>{
 const wb=XLSX.read(d,{type:"array"});
@@ -97,8 +135,20 @@ openTab('members');
 }
 
 function openTab(tab){
-if(tab==="members") loadMembers();
-if(tab==="leaderboard") loadLeaderboardPage();
+    if(tab==="members") loadMembers();
+    if(tab==="leaderboard") loadLeaderboardPage();
+    if(tab==="details") loadDetails();
+    if(tab==="insights") loadInsights();
+}
+
+function setActiveButton(button){
+    let parent = button.parentElement;
+
+    parent.querySelectorAll("button").forEach(btn=>{
+        btn.classList.remove("active");
+    });
+
+    button.classList.add("active");
 }
 
 function getBattingBadge(p){
@@ -119,7 +169,7 @@ return "";
 if(+p.WICKETS>=100)
 return "🥎SPEARHEAD";
 if(+p.WICKETS>=80)
-return "🥎VETERAN"
+return "🥎VETERAN";
 if(+p.WICKETS >= 60)
 return "🥎STRIKE LEADER";
 if(+p.ECONOMY<=8)
@@ -166,7 +216,7 @@ let badge=getBattingBadge(bat);
 let bowlBadge=getBowlingBadge(bowl);
 
 if(bowlBadge)
-badge+=" • "+bowlBadge;
+badge+=bowlBadge;
 content.innerHTML=`
 <button class="backBtn" onclick="loadMembers()">← Back</button>
 <div class="profileTop">
@@ -177,8 +227,9 @@ content.innerHTML=`
 </div>
 </div>
 <div class="playerTabs">
-<button onclick="showBatting('${name}')">BATTING</button>
-<button onclick="showBowling('${name}')">BOWLING</button>
+<button class="active"
+onclick="setActiveButton(this); showBatting('${name}')">BATTING</button>
+<button onclick="setActiveButton(this); showBowling('${name}')">BOWLING</button>
 </div>
 <div id="playerData"></div>
 `;
@@ -194,7 +245,7 @@ playerData.innerHTML=h;
 
 function showBatting(name){
 let p=battingData.find(x=>x.BATSMAN===name);
-renderStats(p,[["MATCHES","Matches"],["INNINGS","Innings"],["RUNS","Runs"],["BALLS","Balls"],["NOT OUTS","Not Outs"],["STRIKERATE","SR"],["AVERAGE","Average"],["FOURS","Fours"],["SIXES","Sixes"],["50","50s"],["BEST","Best"]]);
+renderStats(p,[["MATCHES","Matches"],["INNINGS","Innings"],["RUNS","Runs"],["BALLS","Balls"],["NOT OUTS","Not Outs"],["STRIKERATE","SR"],["AVERAGE","Average"],["Balls/bdry","Balls/Boundar"],["FOURS","Fours"],["SIXES","Sixes"],["50","50s"],["BEST","Best"]]);
 }
 
 function showBowling(name){
@@ -210,9 +261,9 @@ showPlayer(name);
 function loadLeaderboardPage(){
 content.innerHTML=`
 <div class="subTabs">
-<button onclick="loadBattingBoard()">BATTING</button>
-<button onclick="loadBowlingBoard()">BOWLING</button>
-<button onclick="loadMVP()">MVP</button>
+<button onclick="setActiveButton(this); loadBattingBoard()">BATTING</button>
+<button onclick="setActiveButton(this); loadBowlingBoard()">BOWLING</button>
+<button onclick="setActiveButton(this); loadMVP()">MVP</button>
 </div>
 <div id="board"></div>`;
 loadBattingBoard();
@@ -220,9 +271,15 @@ loadBattingBoard();
 
 function loadBattingBoard(sortKey="RUNS"){
 let s=[...battingData];
+if(sortKey==="Balls/bdry"){
+s.sort((a,b)=>
+(+a[sortKey]||999)-(+b[sortKey]||999)
+);
+}else{
 s.sort((a,b)=>
 (+b[sortKey]||0)-(+a[sortKey]||0)
 );
+}
 let h=`
 <select onchange="loadBattingBoard(this.value)">
 <option value="RUNS" ${sortKey==="RUNS"?"selected":""}>Runs</option>
@@ -230,6 +287,7 @@ let h=`
 <option value="AVERAGE" ${sortKey==="AVERAGE"?"selected":""}>Average</option>
 <option value="FOURS" ${sortKey==="FOURS"?"selected":""}>Fours</option>
 <option value="SIXES" ${sortKey==="SIXES"?"selected":""}>Sixes</option>
+<option value="Balls/bdry" ${sortKey==="Balls/bdry"?"selected":""}>Balls/Boundary</option>
 <option value="50" ${sortKey==="50"?"selected":""}>50s</option>
 </select>
 `;
@@ -357,9 +415,6 @@ total:data.batting + data.bowling
 }))
 .sort((a,b)=>b.total-a.total);
 
-mvpList.forEach((p,index)=>{
-p.total += Math.max(0,(10-index))*20;
-});
 mvpList.sort((a,b)=>b.total-a.total);
 
 let s = mvpList;
@@ -390,6 +445,202 @@ Bowling: ${p.bowling.toFixed(0)}
 });
 board.innerHTML=h;
 }
+
+function loadDetails(){
+
+content.innerHTML=`
+
+<h2>🏅 Badge Details</h2>
+
+<div class="card">
+<h3>Batting Badges</h3>
+
+<p><b>🏏 DESTROYER</b><br>
+Strike Rate ≥ 180 and Matches ≥ 15</p>
+
+<p><b>🏏 HARD HITTER</b><br>
+Strike Rate 150–179 and Matches ≥ 15</p>
+
+<p><b>🏏 ACCUMULATOR</b><br>
+Strike Rate 130–149 and Matches ≥ 15</p>
+
+<p><b>🏏 CLASSICIST</b><br>
+Strike Rate 111–129 and Matches ≥ 15</p>
+</div>
+
+<br>
+
+<div class="card">
+<h3>Bowling Badges</h3>
+
+<p><b>🥎 SPEARHEAD</b><br>
+100 or more wickets</p>
+
+<p><b>🥎 VETERAN</b><br>
+80 or more wickets</p>
+
+<p><b>🥎 STRIKE LEADER</b><br>
+60 or more wickets</p>
+
+<p><b>🥎 ECONOMIST</b><br>
+Economy ≤ 8</p>
+
+<p><b>🥎 WILD CARD</b><br>
+40 or more wickets</p>
+
+<p><b>🥎 ASPIRANT</b><br>
+15 or more wickets</p>
+
+</div>
+
+`;
+}
+
+function loadInsights(){
+
+let topRunScorer =
+    battingData.reduce((a,b)=>
+        +a.RUNS > +b.RUNS ? a:b);
+
+let topWicketTaker =
+    bowlingData.reduce((a,b)=>
+        +a.WICKETS > +b.WICKETS ? a:b);
+
+let bestSR =
+    battingData.reduce((a,b)=>
+        +a.STRIKERATE > +b.STRIKERATE ? a:b);
+
+let bestEconomy =
+    bowlingData.reduce((a,b)=>
+        +a.ECONOMY < +b.ECONOMY ? a:b);
+
+let mostFifties =
+    battingData.reduce((a,b)=>
+        +a["50"] > +b["50"] ? a:b);
+
+let mostFifers =
+    bowlingData.reduce((a,b)=>
+        +a["5-W"] > +b["5-W"] ? a : b
+    );
+
+let mostThreefers =
+    bowlingData.reduce((a,b)=>
+        +a["3-W"] > +b["3-W"] ? a : b
+    );
+
+let bestAverage =
+    battingData.reduce((a,b)=>
+        +a.AVERAGE > +b.AVERAGE ? a:b);
+
+let bestInnings = battingData.reduce((a,b)=>{
+    return extractRuns(a.BEST) > extractRuns(b.BEST) ? a : b;
+});
+
+let bestSpell = bowlingData.reduce((a,b)=>{
+    let wa = extractWickets(a.BEST);
+    let wb = extractWickets(b.BEST);
+
+    if(wa !== wb)
+        return wa > wb ? a : b;
+
+    return extractRunsGiven(a.BEST) < extractRunsGiven(b.BEST) ? a : b;
+});
+
+content.innerHTML=`
+
+<h2>📊 Team Insights</h2>
+
+<div class="statsGrid">
+
+<div class="card">
+<div class="label">Highest Runs</div>
+<div class="value">${topRunScorer.RUNS}</div>
+<p>${topRunScorer.BATSMAN}</p>
+</div>
+
+<div class="card">
+<div class="label">Highest Wickets</div>
+<div class="value">${topWicketTaker.WICKETS}</div>
+<p>${topWicketTaker.BOWLER}</p>
+</div>
+
+<div class="card">
+<div class="label">Best Strike Rate</div>
+<div class="value">${bestSR.STRIKERATE}</div>
+<p>${bestSR.BATSMAN}</p>
+</div>
+
+<div class="card">
+<div class="label">Best Economy</div>
+<div class="value">${bestEconomy.ECONOMY}</div>
+<p>${bestEconomy.BOWLER}</p>
+</div>
+
+<div class="card">
+<div class="label">Most 50s</div>
+<div class="value">${mostFifties["50"]}</div>
+<p>${mostFifties.BATSMAN}</p>
+</div>
+
+<div class="card">
+<div class="label">Most 5-Wickets</div>
+<div class="value">${mostFifers["5-W"]}</div>
+<p>${mostFifers.BOWLER}</p>
+</div>
+
+<div class="card">
+<div class="label">Most 3-Wickets</div>
+<div class="value">${mostThreefers["3-W"]}</div>
+<p>${mostThreefers.BOWLER}</p>
+</div>
+
+<div class="card">
+<div class="label">Best Batting Average</div>
+<div class="value">${bestAverage.AVERAGE}</div>
+<p>${bestAverage.BATSMAN}</p>
+</div>
+
+<div class="card">
+<div class="label">Best Innings</div>
+<div class="value">${bestInnings.BEST}</div>
+<p>${bestInnings.BATSMAN}</p>
+</div>
+
+<div class="card">
+<div class="label">Best Spell</div>
+<div class="value">${bestSpell.BEST}</div>
+<p>${bestSpell.BOWLER}</p>
+</div>
+
+<div class="card">
+<div class="label">First 1000runs</div>
+<p>HONNUR SWAMY</p>
+</div>
+
+<div class="card">
+<div class="label">First 100 Wickets</div>
+<p>-</p>
+</div>
+
+<div class="card">
+<div class="label">First 100 6S</div>
+<p>HONNUR SWAMY</p>
+</div>
+
+<div class="card">
+<div class="label">First 5FER</div>
+<p>SHASHANK SHETTY</p>
+</div>
+
+<div class="card">
+<div class="label">First HATTRICK</div>
+<p>SHASHANK SHETTY</p>
+</div>
+
+</div>
+`;  
+}
+
 </script>
 </body>
 </html>
