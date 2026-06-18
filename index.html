@@ -67,9 +67,13 @@ select{width:100px;height:30px;font-size:15px;border-radius:10px;}
 .mainTabs button.active,
 .subTabs button.active,
 .playerTabs button.active{
-    box-shadow: inset 0 -4px 0 rgb(9,143,161);
-    color: rgb(9,143,161);
-    font-weight: bold;
+    background:#d8e8eb;
+    color:rgb(9,143,161);
+    font-weight:bold;
+    box-shadow:
+        0 4px 12px rgba(0,0,0,0.2),
+        inset 0 -4px 0 rgb(9,143,161);
+    transform:translateY(1px);
 }
 </style>
 </head>
@@ -91,8 +95,8 @@ select{width:100px;height:30px;font-size:15px;border-radius:10px;}
 <div class="mainTabs">
 <button id="membersBtn" class="active" onclick="setActiveButton(this); openTab('members')">MEMBERS</button>
 <button onclick="setActiveButton(this); openTab('leaderboard')">LEADERBOARD</button>
+<button onclick="setActiveButton(this); openTab('records')">RECORDS</button>
 <button onclick="setActiveButton(this); openTab('details')">DETAILS</button>
-<button onclick="setActiveButton(this); openTab('insights')">INSIGHTS</button>
 </div>
 
 <div id="content" class="section"></div>
@@ -104,21 +108,17 @@ let battingData=[],bowlingData=[];
 
 function extractRuns(best){
     best = String(best).trim();
-
     let match = best.match(/^(\d+)/);
-
     return match ? parseInt(match[1]) : 0;
 }
 
 function extractWickets(spell){
     let parts = String(spell).split("-");
-
     return parseInt(parts[3]) || 0;
 }
 
 function extractRunsGiven(spell){
     let parts = String(spell).split("-");
-
     return parseInt(parts[2]) || 999;
 }
 
@@ -137,22 +137,20 @@ openTab('members');
 function openTab(tab){
     if(tab==="members") loadMembers();
     if(tab==="leaderboard") loadLeaderboardPage();
+    if(tab==="records") loadRecords();
     if(tab==="details") loadDetails();
-    if(tab==="insights") loadInsights();
 }
 
 function setActiveButton(button){
     let parent = button.parentElement;
-
     parent.querySelectorAll("button").forEach(btn=>{
         btn.classList.remove("active");
     });
-
     button.classList.add("active");
 }
 
 function getBattingBadge(p){
-if(!p||p.MATCHES<15||p.STRIKERATE<=110)
+if(!p||p.MATCHES<15||p.STRIKERATE<110)
 return "";
 if(+p.STRIKERATE>=180)
 return "🏏DESTROYER";
@@ -181,7 +179,7 @@ return"🥎ASPIRANT";
 }
 
 function loadMembers(){
-let html="<h2>Team Members</h2>";
+let html="";
 
 battingData.forEach(p=>{
 let bowl=bowlingData.find(x=>x.BOWLER===p.BATSMAN);
@@ -216,9 +214,18 @@ let badge=getBattingBadge(bat);
 let bowlBadge=getBowlingBadge(bowl);
 
 if(bowlBadge)
-badge+=bowlBadge;
+badge += " " + bowlBadge;
 content.innerHTML=`
-<button class="backBtn" onclick="loadMembers()">← Back</button>
+<button class="backBtn"
+onclick="
+loadMembers();
+document.querySelectorAll('.mainTabs button')
+.forEach(b=>b.classList.remove('active'));
+document.getElementById('membersBtn')
+.classList.add('active');
+">
+← Back
+</button>
 <div class="profileTop">
 <img src="${img}" onerror="this.src='logo.png'">
 <div>
@@ -245,7 +252,7 @@ playerData.innerHTML=h;
 
 function showBatting(name){
 let p=battingData.find(x=>x.BATSMAN===name);
-renderStats(p,[["MATCHES","Matches"],["INNINGS","Innings"],["RUNS","Runs"],["BALLS","Balls"],["NOT OUTS","Not Outs"],["STRIKERATE","SR"],["AVERAGE","Average"],["Balls/bdry","Balls/Boundar"],["FOURS","Fours"],["SIXES","Sixes"],["50","50s"],["BEST","Best"]]);
+renderStats(p,[["MATCHES","Matches"],["INNINGS","Innings"],["RUNS","Runs"],["BALLS","Balls"],["NOT OUTS","Not Outs"],["STRIKERATE","SR"],["AVERAGE","Average"],["Balls/bdry","Balls/Boundary"],["FOURS","Fours"],["SIXES","Sixes"],["50","50s"],["BEST","Best"]]);
 }
 
 function showBowling(name){
@@ -261,7 +268,7 @@ showPlayer(name);
 function loadLeaderboardPage(){
 content.innerHTML=`
 <div class="subTabs">
-<button onclick="setActiveButton(this); loadBattingBoard()">BATTING</button>
+<button class="active" onclick="setActiveButton(this); loadBattingBoard()">BATTING</button>
 <button onclick="setActiveButton(this); loadBowlingBoard()">BOWLING</button>
 <button onclick="setActiveButton(this); loadMVP()">MVP</button>
 </div>
@@ -309,7 +316,9 @@ onerror="this.src='logo.png'">
 <div style="flex:1">
 <b>#${i+1} ${p.BATSMAN}</b>
 <br>
-<small>Runs: ${p.RUNS}</small>
+<small>Runs:${p.RUNS}</small>
+<small>   SR:${p.STRIKERATE}</small>
+<small>   AVG:${p.AVERAGE}</small>
 </div>
 <div>
 <b>${p[sortKey]}</b>
@@ -359,7 +368,10 @@ onerror="this.src='logo.png'">
 <div style="flex:1">
 <b>#${i+1} ${p.BOWLER}</b>
 <br>
-<small>Wickets: ${p.WICKETS}</small>
+<small> Wickets:${p.WICKETS}</small>
+<small> ECO:${p.ECONOMY}</small>
+<small> SR:${p["STRIKE RATE"]}</small>
+<small> AVG:${p.AVERAGE}</small>
 </div>
 <div>
 <b>${p[sortKey]}</b>
@@ -371,6 +383,10 @@ board.innerHTML=h;
 }
 
 function loadMVP(){
+    if(!battingData.length || !bowlingData.length){
+    board.innerHTML="<h3>Loading data...</h3>";
+    return;
+}
 let players={};
 
 battingData.forEach(p=>{
@@ -426,7 +442,8 @@ let img=p.name.toLowerCase()+".jpeg";
 
 let total=p.total;
 h += `
-<div class="player">
+<div class="player"
+onclick="openPlayer('${p.name}')">
 <img src="${img}" onerror="this.src='logo.png'">
 <div style="flex:1">
 <b>#${i+1} ${p.name}</b>
@@ -456,16 +473,16 @@ content.innerHTML=`
 <h3>Batting Badges</h3>
 
 <p><b>🏏 DESTROYER</b><br>
-Strike Rate ≥ 180 and Matches ≥ 15</p>
+Strike Rate >180 and Matches ≥ 15</p>
 
 <p><b>🏏 HARD HITTER</b><br>
-Strike Rate 150–179 and Matches ≥ 15</p>
+Strike Rate >150 and Matches ≥ 15</p>
 
 <p><b>🏏 ACCUMULATOR</b><br>
-Strike Rate 130–149 and Matches ≥ 15</p>
+Strike Rate >130 and Matches ≥ 15</p>
 
 <p><b>🏏 CLASSICIST</b><br>
-Strike Rate 111–129 and Matches ≥ 15</p>
+Strike Rate >110 and Matches ≥ 15</p>
 </div>
 
 <br>
@@ -496,7 +513,11 @@ Economy ≤ 8</p>
 `;
 }
 
-function loadInsights(){
+function loadRecords(){
+if(!battingData.length || !bowlingData.length){
+    content.innerHTML="<h3>Loading data...</h3>";
+    return;
+}
 
 let topRunScorer =
     battingData.reduce((a,b)=>
@@ -548,7 +569,7 @@ let bestSpell = bowlingData.reduce((a,b)=>{
 
 content.innerHTML=`
 
-<h2>📊 Team Insights</h2>
+<h2>📊 Team Records</h2>
 
 <div class="statsGrid">
 
