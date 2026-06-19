@@ -96,6 +96,7 @@ select{width:100px;height:30px;font-size:15px;border-radius:10px;}
 <button id="membersBtn" class="active" onclick="setActiveButton(this); openTab('members')">MEMBERS</button>
 <button onclick="setActiveButton(this); openTab('leaderboard')">LEADERBOARD</button>
 <button onclick="setActiveButton(this); openTab('records')">RECORDS</button>
+<button onclick="setActiveButton(this); openTab('milestones')">MILESTONES</button>
 <button onclick="setActiveButton(this); openTab('details')">DETAILS</button>
 </div>
 
@@ -138,6 +139,7 @@ function openTab(tab){
     if(tab==="members") loadMembers();
     if(tab==="leaderboard") loadLeaderboardPage();
     if(tab==="records") loadRecords();
+    if(tab==="milestones") loadMilestones();
     if(tab==="details") loadDetails();
 }
 
@@ -461,6 +463,205 @@ Bowling: ${p.bowling.toFixed(0)}
 `;
 });
 board.innerHTML=h;
+}
+
+function getNextMilestone(value, milestones){
+    for(let m of milestones){
+        if(value < m){
+            return m;
+        }
+    }
+    return null;
+}
+
+function getMilestoneScore(stat,target){
+
+    if(stat==="Runs"){
+        return {
+            500:100,
+            750:200,
+            1000:300,
+            1500:400,
+            2000:500,
+            2500:600
+        }[target] || 0;
+    }
+
+    if(stat==="Wickets"){
+        return {
+            50:150,
+            100:350,
+            150:550,
+            200:750,
+            250:950
+        }[target] || 0;
+    }
+
+    if(stat==="Sixes"){
+        return {
+            50:80,
+            75:140,
+            100:220,
+            150:320,
+            200:420,
+            250:520
+        }[target] || 0;
+    }
+
+    if(stat==="Fours"){
+        return {
+            50:60,
+            75:120,
+            100:180,
+            150:260,
+            200:340
+        }[target] || 0;
+    }
+
+    if(stat==="Matches"){
+        return {
+            50:40,
+            100:100,
+            150:180,
+            200:260,
+            250:340
+        }[target] || 0;
+    }
+
+    return 0;
+}
+
+function loadMilestones(){
+
+let milestones = [];
+
+/* RUNS */
+battingData.forEach(p=>{
+    let value = +p.RUNS || 0;
+    let next = getNextMilestone(value,[500,750,1000,1500,2000,2500]);
+
+    if(next && (next-value)<=40){
+        milestones.push({
+            player:p.BATSMAN,
+            stat:"Runs",
+            current:value,
+            target:next,
+            remaining:next-value,
+            icon:"🏏"
+        });
+    }
+});
+
+/* WICKETS */
+bowlingData.forEach(p=>{
+    let value = +p.WICKETS || 0;
+    let next = getNextMilestone(value,[50,100,150,200,250]);
+
+    if(next && (next-value)<=8){
+        milestones.push({
+            player:p.BOWLER,
+            stat:"Wickets",
+            current:value,
+            target:next,
+            remaining:next-value,
+            icon:"🥎"
+        });
+    }
+});
+
+/* SIXES */
+battingData.forEach(p=>{
+    let value = +p.SIXES || 0;
+    let next = getNextMilestone(value,[50,75,100,150,200,250]);
+
+    if(next && (next-value)<=10){
+        milestones.push({
+            player:p.BATSMAN,
+            stat:"Sixes",
+            current:value,
+            target:next,
+            remaining:next-value,
+            icon:"💥"
+        });
+    }
+});
+
+/* FOURS */
+battingData.forEach(p=>{
+    let value = +p.FOURS || 0;
+    let next = getNextMilestone(value,[50,75,100,150,200]);
+
+    if(next && (next-value)<=8){
+        milestones.push({
+            player:p.BATSMAN,
+            stat:"Fours",
+            current:value,
+            target:next,
+            remaining:next-value,
+            icon:"⚡"
+        });
+    }
+});
+
+/* MATCHES */
+battingData.forEach(p=>{
+    let value = +p.MATCHES || 0;
+    let next = getNextMilestone(value,[50,100,150,200,250]);
+
+    if(next && (next-value)<=5){
+        milestones.push({
+            player:p.BATSMAN,
+            stat:"Matches",
+            current:value,
+            target:next,
+            remaining:next-value,
+            icon:"🎮"
+        });
+    }
+});
+
+milestones.sort((a,b)=>{
+
+    let scoreA = getMilestoneScore(a.stat,a.target);
+    let scoreB = getMilestoneScore(b.stat,b.target);
+
+    if(scoreA !== scoreB)
+        return scoreB - scoreA;
+
+    return a.remaining - b.remaining;
+});
+
+let html = `
+<h2>🎯 Milestone Tracker</h2>
+<p>THESE GUYS ARE NEAR TO THESE MILESTONES</P>
+<div class="statsGrid">
+`;
+
+milestones.forEach(m=>{
+    html += `
+    <div class="card">
+        <div class="label">
+            ${m.icon} ${m.stat}
+        </div>
+
+        <div class="value">
+            ${m.current}/${m.target}
+        </div>
+
+        <p>
+            <b>${m.player}</b>
+        </p>
+
+        <p>
+            ${m.remaining} Away
+        </p>
+    </div>
+    `;
+});
+
+html += "</div>";
+
+content.innerHTML = html;
 }
 
 function loadDetails(){
