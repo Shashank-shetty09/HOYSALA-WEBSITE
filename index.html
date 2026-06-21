@@ -75,6 +75,57 @@ select{width:100px;height:30px;font-size:15px;border-radius:10px;}
         inset 0 -4px 0 rgb(9,143,161);
     transform:translateY(1px);
 }
+.galleryGrid{
+display:grid;
+grid-template-columns:repeat(auto-fit,minmax(250px,1fr));
+gap:15px;
+margin-top:15px;
+}
+
+.galleryCard{
+background:#fff;
+padding:10px;
+border-radius:12px;
+box-shadow:0 2px 8px rgba(0,0,0,.1);
+text-align:center;
+}
+
+.galleryCard img{
+width:100%;
+height:220px;
+object-fit:cover;
+border-radius:10px;
+cursor:pointer;
+transition:.3s;
+}
+
+.galleryCard img:hover{
+transform:scale(1.02);
+}
+
+.galleryTitle{
+margin-top:8px;
+font-weight:bold;
+}
+
+#imageModal{
+display:none;
+position:fixed;
+top:0;
+left:0;
+width:100%;
+height:100%;
+background:rgba(0,0,0,.9);
+justify-content:center;
+align-items:center;
+z-index:9999;
+}
+
+#imageModal img{
+max-width:90%;
+max-height:90%;
+border-radius:10px;
+}
 </style>
 </head>
 <body>
@@ -97,6 +148,8 @@ select{width:100px;height:30px;font-size:15px;border-radius:10px;}
 <button onclick="setActiveButton(this); openTab('leaderboard')">LEADERBOARD</button>
 <button onclick="setActiveButton(this); openTab('records')">RECORDS</button>
 <button onclick="setActiveButton(this); openTab('milestones')">MILESTONES</button>
+<button onclick="setActiveButton(this); openTab('teamrecords')">TEAM RECORDS</button>
+<button onclick="setActiveButton(this); openTab('gallery')">GALLERY</button>
 <button onclick="setActiveButton(this); openTab('details')">DETAILS</button>
 </div>
 
@@ -140,6 +193,8 @@ function openTab(tab){
     if(tab==="leaderboard") loadLeaderboardPage();
     if(tab==="records") loadRecords();
     if(tab==="milestones") loadMilestones();
+    if(tab==="teamrecords") loadTeamRecords();
+    if(tab==="gallery") loadGallery();
     if(tab==="details") loadDetails();
 }
 
@@ -714,6 +769,170 @@ Economy ≤ 8</p>
 `;
 }
 
+function oversToBalls(overs){
+
+    overs = String(overs);
+
+    let parts = overs.split(".");
+
+    let completeOvers = parseInt(parts[0]) || 0;
+    let balls = parseInt(parts[1]) || 0;
+
+    return completeOvers * 6 + balls;
+}
+
+function loadTeamRecords(){
+
+if(!battingData.length || !bowlingData.length){
+    content.innerHTML="<h3>Loading data...</h3>";
+    return;
+}
+let totalInnings = 0;
+let totalRuns = 0;
+let totalBalls = 0;
+let totalNotOuts = 0;
+let totalFours = 0;
+let totalSixes = 0;
+let totalFifties = 0;
+
+battingData.forEach(p=>{
+    totalInnings += +p.INNINGS || 0;
+    totalRuns += +p.RUNS || 0;
+    totalBalls += +p.BALLS || 0;
+    totalNotOuts += +p["NOT OUTS"] || 0;
+    totalFours += +p.FOURS || 0;
+    totalSixes += +p.SIXES || 0;
+    totalFifties += +p["50"] || 0;
+});
+
+let battingAverage =
+totalRuns / Math.max(1,(totalInnings-totalNotOuts));
+
+let battingStrikeRate =
+(totalRuns * 100) / Math.max(1,totalBalls);
+
+let ballsPerBoundary =
+totalBalls / Math.max(1,(totalFours + totalSixes));
+
+/* BOWLING TOTALS */
+
+let totalBallsBowled = 0;
+let totalBowlingRuns = 0;
+let totalWickets = 0;
+let total3W = 0;
+let total5W = 0;
+
+bowlingData.forEach(p=>{
+    totalBallsBowled += oversToBalls(p.OVERS);
+    totalBowlingRuns += +p.RUNS || 0;
+    totalWickets += +p.WICKETS || 0;
+    total3W += +p["3-W"] || 0;
+    total5W += +p["5-W"] || 0;
+});
+
+let bowlingEconomy =
+(totalBowlingRuns * 6) /
+Math.max(1,totalBallsBowled);
+
+let bowlingAverage =
+totalBowlingRuns /
+Math.max(1,totalWickets);
+
+let bowlingStrikeRate =
+totalBallsBowled /
+Math.max(1,totalWickets);
+
+let totalOversDisplay =
+Math.floor(totalBallsBowled / 6) +
+"." +
+(totalBallsBowled % 6);
+
+content.innerHTML = `
+<div class="box">
+    <p>MATCHES:CALCULATING</P>
+    <p>WON:CALCULATING</p>
+    <p>LOST:CALCULATING</p>
+    </div>
+<h2>🏏 TEAM BATTING STATS</h2>
+
+<div class="statsGrid">
+
+<div class="card">
+<div class="label">Total Runs</div>
+<div class="value">${totalRuns}</div>
+</div>
+
+<div class="card">
+<div class="label">Batting Average</div>
+<div class="value">${battingAverage.toFixed(2)}</div>
+</div>
+
+<div class="card">
+<div class="label">Batting Strike Rate</div>
+<div class="value">${battingStrikeRate.toFixed(2)}</div>
+</div>
+
+<div class="card">
+<div class="label">Balls / Boundary</div>
+<div class="value">${ballsPerBoundary.toFixed(2)}</div>
+</div>
+
+<div class="card">
+<div class="label">Fours</div>
+<div class="value">${totalFours}</div>
+</div>
+
+<div class="card">
+<div class="label">Sixes</div>
+<div class="value">${totalSixes}</div>
+</div>
+
+<div class="card">
+<div class="label">50s</div>
+<div class="value">${totalFifties}</div>
+</div>
+<br>
+<h2>🥎 TEAM BOWLING STATS</h2>
+<br>
+<div class="card">
+<div class="label">Overs Bowled</div>
+<div class="value">${totalOversDisplay}</div>
+</div>
+
+<div class="card">
+<div class="label">Wickets</div>
+<div class="value">${totalWickets}</div>
+</div>
+
+<div class="card">
+<div class="label">Bowling Economy</div>
+<div class="value">${bowlingEconomy.toFixed(2)}</div>
+</div>
+
+<div class="card">
+<div class="label">Bowling Average</div>
+<div class="value">${bowlingAverage.toFixed(2)}</div>
+</div>
+
+<div class="card">
+<div class="label">Bowling Strike Rate</div>
+<div class="value">${bowlingStrikeRate.toFixed(2)}</div>
+</div>
+
+<div class="card">
+<div class="label">3-Wicket Hauls</div>
+<div class="value">${total3W}</div>
+</div>
+
+<div class="card">
+<div class="label">5-Wicket Hauls</div>
+<div class="value">${total5W}</div>
+</div>
+
+</div>
+`;
+}
+
 function loadRecords(){
 if(!battingData.length || !bowlingData.length){
     content.innerHTML="<h3>Loading data...</h3>";
@@ -863,6 +1082,41 @@ content.innerHTML=`
 `;  
 }
 
+function openImage(src){
+    document.getElementById("imageModal").style.display="flex";
+    document.getElementById("modalImg").src=src;
+}
+
+function closeImage(){
+    document.getElementById("imageModal").style.display="none";
+}
+
+function loadGallery(){
+
+let html = `
+<h2>📸 Hoysala Gallery</h2>
+<div class="galleryGrid">
+`;
+
+for(let i=1;i<=250;i++){
+
+    html += `
+    <div class="galleryCard">
+        <img src="gallery${i}.jpg"
+             onerror="this.parentElement.style.display='none'"
+             onclick="openImage('gallery${i}.jpg')">
+    </div>
+    `;
+}
+
+html += "</div>";
+
+content.innerHTML = html;
+}
+
 </script>
+<div id="imageModal" onclick="closeImage()">
+    <img id="modalImg">
+</div>
 </body>
 </html>
