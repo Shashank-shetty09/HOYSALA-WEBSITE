@@ -9,12 +9,50 @@
 body{margin:0;font-family:Segoe UI,sans-serif;background:#f3f4f6}
 #logoScreen{height:100vh;display:flex;flex-direction:column;justify-content:center;align-items:center;background:url("jersey.png") center/cover;color:#fff}
 #logoScreen img{width:180px}
-#logoScreen button{padding:8px 12px;font-size:20px;font-weight:bold;border:none;border-radius:8px;background:rgb(9, 143, 161);color:#fff}
+#logoScreen button{
+    color:#ffff;
+    background-color: rgb(9, 143, 161);
+    width: 80px;
+    height: 30px;
+    border-color: #03d5fa;
+    animation:pulse 3s infinite;
+}
+
+@keyframes pulse{
+    0%{transform:scale(1);}
+    50%{transform:scale(2);}
+    100%{transform:scale(1);}
+}
 h1{color:rgb(9, 143, 161)}
 #app{display:none}
 .header{background:rgb(9, 143, 161);color:#fff;padding:20px;display:flex;align-items:center;gap:15px}
 .header img{width:90px;height:90px;background:#fff;border-radius:10px;padding:5px}
-.mainTabs,.subTabs,.playerTabs{display:flex;background:#fff}
+.mainTabs,
+.subTabs,
+.playerTabs{
+display:flex;
+background:#fff;
+overflow-x:auto;
+white-space:nowrap;
+scrollbar-width:none;
+}
+
+.mainTabs::-webkit-scrollbar,
+.subTabs::-webkit-scrollbar,
+.playerTabs::-webkit-scrollbar{
+display:none;
+}
+
+.mainTabs button,
+.subTabs button,
+.playerTabs button{
+flex:none;
+min-width:110px;
+padding:14px;
+border:none;
+background:#fff;
+font-weight:700;
+}
 .mainTabs button,.subTabs button,.playerTabs button{flex:1;padding:14px;border:none;background:#fff;font-weight:700}
 .section{padding:15px}
 .player{
@@ -126,12 +164,25 @@ max-width:90%;
 max-height:90%;
 border-radius:10px;
 }
+.ball{
+position:center;
+top:20%;
+right:10%;
+font-size:100px;
+animation:float 3s ease-in-out infinite;
+}
+
+@keyframes float{
+0%,100%{transform:translateY(0);}
+50%{transform:translateY(-20px);}
+}
 </style>
 </head>
 <body>
 <div id="logoScreen">
 <img src="logo.png"><h1>HOYSALA CRICKET TEAM</h1>
 <button onclick="enterSite()">VISIT</button>
+<div class="ball">🏏</div>
 </div>
 
 <div id="app">
@@ -183,9 +234,13 @@ bowlingData=XLSX.utils.sheet_to_json(wb.Sheets["BOWLING"],{defval:""});
 });
 
 function enterSite(){
-logoScreen.style.display="none";
-app.style.display="block";
-openTab('members');
+    document.getElementById("logoScreen").style.opacity="0";
+
+    setTimeout(()=>{
+        logoScreen.style.display="none";
+        app.style.display="block";
+        openTab('members');
+    },500);
 }
 
 function openTab(tab){
@@ -891,9 +946,9 @@ content.innerHTML = `
 <div class="label">50s</div>
 <div class="value">${totalFifties}</div>
 </div>
-<br>
-<h2>🥎 TEAM BOWLING STATS</h2>
-<br>
+</div>
+<h2 style="margin-top:30px;">🥎 TEAM BOWLING STATS</h2>
+<div class="statsGrid">
 <div class="card">
 <div class="label">Overs Bowled</div>
 <div class="value">${totalOversDisplay}</div>
@@ -928,7 +983,7 @@ content.innerHTML = `
 <div class="label">5-Wicket Hauls</div>
 <div class="value">${total5W}</div>
 </div>
-
+</div>
 </div>
 `;
 }
