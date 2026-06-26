@@ -195,11 +195,10 @@ animation:float 3s ease-in-out infinite;
 </div>
 
 <div class="mainTabs">
-<button id="membersBtn" class="active" onclick="setActiveButton(this); openTab('members')">MEMBERS</button>
+<button id="playersBtn" class="active" onclick="setActiveButton(this); openTab('players')">PLAYERS</button>
 <button onclick="setActiveButton(this); openTab('leaderboard')">LEADERBOARD</button>
 <button onclick="setActiveButton(this); openTab('records')">RECORDS</button>
 <button onclick="setActiveButton(this); openTab('milestones')">MILESTONES</button>
-<button onclick="setActiveButton(this); openTab('teamrecords')">TEAM RECORDS</button>
 <button onclick="setActiveButton(this); openTab('gallery')">GALLERY</button>
 <button onclick="setActiveButton(this); openTab('details')">DETAILS</button>
 </div>
@@ -239,16 +238,16 @@ function enterSite(){
     setTimeout(()=>{
         logoScreen.style.display="none";
         app.style.display="block";
-        openTab('members');
+        openTab('players');
     },500);
 }
 
 function openTab(tab){
-    if(tab==="members") loadMembers();
+    if(tab==="players") loadPlayers();
     if(tab==="leaderboard") loadLeaderboardPage();
     if(tab==="records") loadRecords();
     if(tab==="milestones") loadMilestones();
-    if(tab==="teamrecords") loadTeamRecords();
+    if(tab==="milestones") loadMilestones();
     if(tab==="gallery") loadGallery();
     if(tab==="details") loadDetails();
 }
@@ -290,7 +289,7 @@ if(+p.WICKETS>=15)
 return"🥎ASPIRANT";
 }
 
-function loadMembers(){
+function loadPlayers(){
 let html="";
 
 battingData.forEach(p=>{
@@ -330,10 +329,10 @@ badge += " " + bowlBadge;
 content.innerHTML=`
 <button class="backBtn"
 onclick="
-loadMembers();
+loadPlayers();
 document.querySelectorAll('.mainTabs button')
 .forEach(b=>b.classList.remove('active'));
-document.getElementById('membersBtn')
+document.getElementById('playersBtn')
 .classList.add('active');
 ">
 ← Back
@@ -650,7 +649,7 @@ battingData.forEach(p=>{
     let value = +p.RUNS || 0;
     let next = getNextMilestone(value,[500,750,1000,1500,2000,2500]);
 
-    if(next && (next-value)<=40){
+    if(next && (next-value)<=50){
         milestones.push({
             player:p.BATSMAN,
             stat:"Runs",
@@ -667,7 +666,7 @@ bowlingData.forEach(p=>{
     let value = +p.WICKETS || 0;
     let next = getNextMilestone(value,[50,100,150,200,250]);
 
-    if(next && (next-value)<=8){
+    if(next && (next-value)<=12){
         milestones.push({
             player:p.BOWLER,
             stat:"Wickets",
@@ -682,7 +681,7 @@ bowlingData.forEach(p=>{
 /* SIXES */
 battingData.forEach(p=>{
     let value = +p.SIXES || 0;
-    let next = getNextMilestone(value,[50,75,100,150,200,250]);
+    let next = getNextMilestone(value,[50,100,150,200,250]);
 
     if(next && (next-value)<=10){
         milestones.push({
@@ -699,9 +698,9 @@ battingData.forEach(p=>{
 /* FOURS */
 battingData.forEach(p=>{
     let value = +p.FOURS || 0;
-    let next = getNextMilestone(value,[50,75,100,150,200]);
+    let next = getNextMilestone(value,[50,100,150,200]);
 
-    if(next && (next-value)<=8){
+    if(next && (next-value)<=10){
         milestones.push({
             player:p.BATSMAN,
             stat:"Fours",
@@ -718,7 +717,7 @@ battingData.forEach(p=>{
     let value = +p.MATCHES || 0;
     let next = getNextMilestone(value,[50,100,150,200,250]);
 
-    if(next && (next-value)<=5){
+    if(next && (next-value)<=6){
         milestones.push({
             player:p.BATSMAN,
             stat:"Matches",
@@ -836,12 +835,60 @@ function oversToBalls(overs){
     return completeOvers * 6 + balls;
 }
 
-function loadTeamRecords(){
-
+function loadRecords(){
 if(!battingData.length || !bowlingData.length){
     content.innerHTML="<h3>Loading data...</h3>";
     return;
 }
+
+let topRunScorer =
+    battingData.reduce((a,b)=>
+        +a.RUNS > +b.RUNS ? a:b);
+
+let topWicketTaker =
+    bowlingData.reduce((a,b)=>
+        +a.WICKETS > +b.WICKETS ? a:b);
+
+let bestSR =
+    battingData.reduce((a,b)=>
+        +a.STRIKERATE > +b.STRIKERATE ? a:b);
+
+let bestEconomy =
+    bowlingData.reduce((a,b)=>
+        +a.ECONOMY < +b.ECONOMY ? a:b);
+
+let mostFifties =
+    battingData.reduce((a,b)=>
+        +a["50"] > +b["50"] ? a:b);
+
+let mostFifers =
+    bowlingData.reduce((a,b)=>
+        +a["5-W"] > +b["5-W"] ? a : b
+    );
+
+let mostThreefers =
+    bowlingData.reduce((a,b)=>
+        +a["3-W"] > +b["3-W"] ? a : b
+    );
+
+let bestAverage =
+    battingData.reduce((a,b)=>
+        +a.AVERAGE > +b.AVERAGE ? a:b);
+
+let bestInnings = battingData.reduce((a,b)=>{
+    return extractRuns(a.BEST) > extractRuns(b.BEST) ? a : b;
+});
+
+let bestSpell = bowlingData.reduce((a,b)=>{
+    let wa = extractWickets(a.BEST);
+    let wb = extractWickets(b.BEST);
+
+    if(wa !== wb)
+        return wa > wb ? a : b;
+
+    return extractRunsGiven(a.BEST) < extractRunsGiven(b.BEST) ? a : b;
+});
+
 let totalInnings = 0;
 let totalRuns = 0;
 let totalBalls = 0;
@@ -902,7 +949,99 @@ Math.floor(totalBallsBowled / 6) +
 "." +
 (totalBallsBowled % 6);
 
-content.innerHTML = `
+content.innerHTML=`
+
+<h2>📊 Team Records</h2>
+
+<div class="statsGrid">
+
+<div class="card">
+<div class="label">Highest Runs</div>
+<div class="value">${topRunScorer.RUNS}</div>
+<p>${topRunScorer.BATSMAN}</p>
+</div>
+
+<div class="card">
+<div class="label">Highest Wickets</div>
+<div class="value">${topWicketTaker.WICKETS}</div>
+<p>${topWicketTaker.BOWLER}</p>
+</div>
+
+<div class="card">
+<div class="label">Best Strike Rate</div>
+<div class="value">${bestSR.STRIKERATE}</div>
+<p>${bestSR.BATSMAN}</p>
+</div>
+
+<div class="card">
+<div class="label">Best Economy</div>
+<div class="value">${bestEconomy.ECONOMY}</div>
+<p>${bestEconomy.BOWLER}</p>
+</div>
+
+<div class="card">
+<div class="label">Most 50s</div>
+<div class="value">${mostFifties["50"]}</div>
+<p>${mostFifties.BATSMAN}</p>
+</div>
+
+<div class="card">
+<div class="label">Most 5-Wickets</div>
+<div class="value">${mostFifers["5-W"]}</div>
+<p>${mostFifers.BOWLER}</p>
+</div>
+
+<div class="card">
+<div class="label">Most 3-Wickets</div>
+<div class="value">${mostThreefers["3-W"]}</div>
+<p>${mostThreefers.BOWLER}</p>
+</div>
+
+<div class="card">
+<div class="label">Best Batting Average</div>
+<div class="value">${bestAverage.AVERAGE}</div>
+<p>${bestAverage.BATSMAN}</p>
+</div>
+
+<div class="card">
+<div class="label">Best Innings</div>
+<div class="value">${bestInnings.BEST}</div>
+<p>${bestInnings.BATSMAN}</p>
+</div>
+
+<div class="card">
+<div class="label">Best Spell</div>
+<div class="value">${bestSpell.BEST}</div>
+<p>${bestSpell.BOWLER}</p>
+</div>
+
+<div class="card">
+<div class="label">First 1000runs</div>
+<p>HONNUR SWAMY</p>
+</div>
+
+<div class="card">
+<div class="label">First 100 Wickets</div>
+<p>SHASHANK SHETTY</p>
+</div>
+
+<div class="card">
+<div class="label">First 100 6S</div>
+<p>HONNUR SWAMY</p>
+</div>
+
+<div class="card">
+<div class="label">First 5FER</div>
+<p>SHASHANK SHETTY</p>
+</div>
+
+<div class="card">
+<div class="label">First HATTRICK</div>
+<p>SHASHANK SHETTY</p>
+</div>
+
+</div>
+
 <div class="box">
     <p>MATCHES:CALCULATING</P>
     <p>WON:CALCULATING</p>
@@ -985,156 +1124,7 @@ content.innerHTML = `
 </div>
 </div>
 </div>
-`;
-}
-
-function loadRecords(){
-if(!battingData.length || !bowlingData.length){
-    content.innerHTML="<h3>Loading data...</h3>";
-    return;
-}
-
-let topRunScorer =
-    battingData.reduce((a,b)=>
-        +a.RUNS > +b.RUNS ? a:b);
-
-let topWicketTaker =
-    bowlingData.reduce((a,b)=>
-        +a.WICKETS > +b.WICKETS ? a:b);
-
-let bestSR =
-    battingData.reduce((a,b)=>
-        +a.STRIKERATE > +b.STRIKERATE ? a:b);
-
-let bestEconomy =
-    bowlingData.reduce((a,b)=>
-        +a.ECONOMY < +b.ECONOMY ? a:b);
-
-let mostFifties =
-    battingData.reduce((a,b)=>
-        +a["50"] > +b["50"] ? a:b);
-
-let mostFifers =
-    bowlingData.reduce((a,b)=>
-        +a["5-W"] > +b["5-W"] ? a : b
-    );
-
-let mostThreefers =
-    bowlingData.reduce((a,b)=>
-        +a["3-W"] > +b["3-W"] ? a : b
-    );
-
-let bestAverage =
-    battingData.reduce((a,b)=>
-        +a.AVERAGE > +b.AVERAGE ? a:b);
-
-let bestInnings = battingData.reduce((a,b)=>{
-    return extractRuns(a.BEST) > extractRuns(b.BEST) ? a : b;
-});
-
-let bestSpell = bowlingData.reduce((a,b)=>{
-    let wa = extractWickets(a.BEST);
-    let wb = extractWickets(b.BEST);
-
-    if(wa !== wb)
-        return wa > wb ? a : b;
-
-    return extractRunsGiven(a.BEST) < extractRunsGiven(b.BEST) ? a : b;
-});
-
-content.innerHTML=`
-
-<h2>📊 Team Records</h2>
-
-<div class="statsGrid">
-
-<div class="card">
-<div class="label">Highest Runs</div>
-<div class="value">${topRunScorer.RUNS}</div>
-<p>${topRunScorer.BATSMAN}</p>
-</div>
-
-<div class="card">
-<div class="label">Highest Wickets</div>
-<div class="value">${topWicketTaker.WICKETS}</div>
-<p>${topWicketTaker.BOWLER}</p>
-</div>
-
-<div class="card">
-<div class="label">Best Strike Rate</div>
-<div class="value">${bestSR.STRIKERATE}</div>
-<p>${bestSR.BATSMAN}</p>
-</div>
-
-<div class="card">
-<div class="label">Best Economy</div>
-<div class="value">${bestEconomy.ECONOMY}</div>
-<p>${bestEconomy.BOWLER}</p>
-</div>
-
-<div class="card">
-<div class="label">Most 50s</div>
-<div class="value">${mostFifties["50"]}</div>
-<p>${mostFifties.BATSMAN}</p>
-</div>
-
-<div class="card">
-<div class="label">Most 5-Wickets</div>
-<div class="value">${mostFifers["5-W"]}</div>
-<p>${mostFifers.BOWLER}</p>
-</div>
-
-<div class="card">
-<div class="label">Most 3-Wickets</div>
-<div class="value">${mostThreefers["3-W"]}</div>
-<p>${mostThreefers.BOWLER}</p>
-</div>
-
-<div class="card">
-<div class="label">Best Batting Average</div>
-<div class="value">${bestAverage.AVERAGE}</div>
-<p>${bestAverage.BATSMAN}</p>
-</div>
-
-<div class="card">
-<div class="label">Best Innings</div>
-<div class="value">${bestInnings.BEST}</div>
-<p>${bestInnings.BATSMAN}</p>
-</div>
-
-<div class="card">
-<div class="label">Best Spell</div>
-<div class="value">${bestSpell.BEST}</div>
-<p>${bestSpell.BOWLER}</p>
-</div>
-
-<div class="card">
-<div class="label">First 1000runs</div>
-<p>HONNUR SWAMY</p>
-</div>
-
-<div class="card">
-<div class="label">First 100 Wickets</div>
-<p>-</p>
-</div>
-
-<div class="card">
-<div class="label">First 100 6S</div>
-<p>HONNUR SWAMY</p>
-</div>
-
-<div class="card">
-<div class="label">First 5FER</div>
-<p>SHASHANK SHETTY</p>
-</div>
-
-<div class="card">
-<div class="label">First HATTRICK</div>
-<p>SHASHANK SHETTY</p>
-</div>
-
-</div>
-`;  
+`; 
 }
 
 function openImage(src){
