@@ -363,13 +363,13 @@ playerData.innerHTML=h;
 
 function showBatting(name){
 let p=battingData.find(x=>x.BATSMAN===name);
-renderStats(p,[["MATCHES","Matches"],["INNINGS","Innings"],["RUNS","Runs"],["BALLS","Balls"],["NOT OUTS","Not Outs"],["STRIKERATE","SR"],["AVERAGE","Average"],["Balls/bdry","Balls/Boundary"],["FOURS","Fours"],["SIXES","Sixes"],["50","50s"],["BEST","Best"]]);
+renderStats(p,[["MATCHES","Matches"],["INNINGS","Innings"],["RUNS","Runs"],["BALLS","Balls"],["NOT OUTS","Not Outs"],["STRIKERATE","SR"],["AVERAGE","Average"],["Balls/bdry","Balls/Boundary"],["FOURS","Fours"],["SIXES","Sixes"],["50","50s"],["BEST","Best"],["RECENT","Recent"]]);
 }
 
 function showBowling(name){
 let p=bowlingData.find(x=>x.BOWLER===name);
 if(!p){playerData.innerHTML="<h3>No Bowling Data</h3>";return;}
-renderStats(p,[["MATCHES","Matches"],["OVERS","Overs"],["WICKETS","Wickets"],["RUNS","Runs"],["ECONOMY","Economy"],["AVERAGE","Average"],["STRIKE RATE","SR"],["3-W","3W"],["5-W","5W"],["BEST","Best"]]);
+renderStats(p,[["MATCHES","Matches"],["OVERS","Overs"],["WICKETS","Wickets"],["RUNS","Runs"],["ECONOMY","Economy"],["AVERAGE","Average"],["STRIKE RATE","SR"],["3-W","3W"],["5-W","5W"],["BEST","Best"],["RECENT","Recent"]]);
 }
 
 function openPlayer(name){
