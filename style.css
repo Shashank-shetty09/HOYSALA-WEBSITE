@@ -1,0 +1,205 @@
+body{margin:0;font-family:Segoe UI,sans-serif;background:#f3f4f6}
+#logoScreen{height:100vh;display:flex;flex-direction:column;justify-content:center;align-items:center;background:url("jersey.png") center/cover;color:#fff}
+#logoScreen img{width:180px}
+#logoScreen button{
+    color:#ffff;
+    background-color: rgb(9, 143, 161);
+    width: 80px;
+    height: 30px;
+    border-color: #03d5fa;
+    animation:pulse 3s infinite;
+}
+
+@keyframes pulse{
+    0%{transform:scale(1);}
+    50%{transform:scale(2);}
+    100%{transform:scale(1);}
+}
+h1{color:rgb(9, 143, 161)}
+#app{display:none}
+.header{background:rgb(9, 143, 161);color:#fff;padding:20px;display:flex;align-items:center;gap:15px}
+.header img{width:90px;height:90px;background:#fff;border-radius:10px;padding:5px}
+.mainTabs,
+.subTabs,
+.playerTabs{
+display:flex;
+background:#fff;
+overflow-x:auto;
+white-space:nowrap;
+scrollbar-width:none;
+}
+
+.mainTabs::-webkit-scrollbar,
+.subTabs::-webkit-scrollbar,
+.playerTabs::-webkit-scrollbar{
+display:none;
+}
+
+.mainTabs button,
+.subTabs button,
+.playerTabs button{
+flex:none;
+min-width:110px;
+padding:14px;
+border:none;
+background:#fff;
+font-weight:700;
+}
+.mainTabs button,.subTabs button,.playerTabs button{flex:1;padding:14px;border:none;background:#fff;font-weight:700}
+.section{padding:15px}
+.player{
+display:flex;
+align-items:center;
+gap:15px;
+background:#fff;
+margin:10px 0;
+padding:12px;
+border-radius:12px;
+box-shadow:0 2px 8px rgba(5, 84, 168, 0.1);
+cursor:pointer;
+}
+.player img{
+width:60px;
+height:60px;
+border-radius:50%;
+object-fit:cover;
+border:2px solid #ddd;
+}
+.badge{
+font-family: 'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;
+display:inline-block;
+padding:4px 10px;
+border-radius:20px;
+font-size:15px;
+font-weight:bold;
+margin-top:4px;
+color:#f5037c;
+}
+.playerInfo h4{
+margin:0;
+}
+.playerInfo p{
+margin:0;
+color:#666;
+}
+.profileTop{display:flex;gap:15px;background:#fff;padding:15px;border-radius:10px}
+.profileTop img{width:140px;height:140px;object-fit:cover;border-radius:10px}
+.playerName{display:flex;align-items:center;font-size:28px;font-weight:bold}
+.statsGrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin-top:15px}
+.card{background:#fff;padding:15px;border-radius:10px;text-align:center;box-shadow:0 2px 8px rgba(0,0,0,.1)}
+.label{font-size:13px;color:#666}
+.value{font-size:28px;font-weight:bold;color:#0b1f4d}
+table{width:100%;border-collapse:collapse;background:#fff}
+th{background:#0b1f4d;color:#fff}
+th,td{padding:10px;border:1px solid #ddd;text-align:center}
+.backBtn{margin:10px 0;padding:10px 15px;border:none;background:#d71920;color:#fff;border-radius:8px}
+select{width:100px;height:30px;font-size:15px;border-radius:10px;}
+.mainTabs button.active,
+.subTabs button.active,
+.playerTabs button.active{
+    background:#d8e8eb;
+    color:rgb(9,143,161);
+    font-weight:bold;
+    box-shadow:
+        0 4px 12px rgba(0,0,0,0.2),
+        inset 0 -4px 0 rgb(9,143,161);
+    transform:translateY(1px);
+}
+.galleryGrid{
+display:grid;
+grid-template-columns:repeat(auto-fit,minmax(250px,1fr));
+gap:15px;
+margin-top:15px;
+}
+
+.galleryCard{
+background:#fff;
+padding:10px;
+border-radius:12px;
+box-shadow:0 2px 8px rgba(0,0,0,.1);
+text-align:center;
+}
+
+.galleryCard img{
+width:100%;
+height:220px;
+object-fit:cover;
+border-radius:10px;
+cursor:pointer;
+transition:.3s;
+}
+
+.galleryCard img:hover{
+transform:scale(1.02);
+}
+
+.galleryTitle{
+margin-top:8px;
+font-weight:bold;
+}
+
+#imageModal{
+display:none;
+position:fixed;
+top:0;
+left:0;
+width:100%;
+height:100%;
+background:rgba(0,0,0,.9);
+justify-content:center;
+align-items:center;
+z-index:9999;
+}
+
+#imageModal img{
+max-width:90%;
+max-height:90%;
+border-radius:10px;
+}
+.ball{
+position:center;
+top:20%;
+right:10%;
+font-size:100px;
+animation:float 3s ease-in-out infinite;
+}
+
+@keyframes float{
+0%,100%{transform:translateY(0);}
+50%{transform:translateY(-20px);}
+}
+.mainTabs a{
+    flex:none;
+    min-width:110px;
+    padding:14px;
+    border:none;
+    background:#fff;
+    font-weight:700;
+    text-align:center;
+    text-decoration:none;
+    color:#000;
+    box-sizing:border-box;
+}
+.mainTabs a.active{
+    background:#d8e8eb;
+    color:rgb(9,143,161);
+    font-weight:bold;
+    box-shadow:
+        0 4px 12px rgba(0,0,0,0.2),
+        inset 0 -4px 0 rgb(9,143,161);
+    transform:translateY(1px);
+}
+
+.visitBtn{
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    color:#ffff;
+    background-color:rgb(9,143,161);
+    width:80px;
+    height:30px;
+    border:1px solid #03d5fa;
+    animation:pulse 3s infinite;
+    text-decoration:none;
+    font-weight:600;
+}
