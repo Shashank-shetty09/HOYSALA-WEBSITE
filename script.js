@@ -129,13 +129,13 @@ document.getElementById("playerData").innerHTML=h;
 
 function showBatting(name){
 let p=battingData.find(x=>x.BATSMAN===name);
-renderStats(p,[["MATCHES","Matches"],["INNINGS","Innings"],["RUNS","Runs"],["BALLS","Balls"],["NOT OUTS","Not Outs"],["STRIKERATE","SR"],["AVERAGE","Average"],["Balls/bdry","Balls/Boundary"],["FOURS","Fours"],["SIXES","Sixes"],["50","50s"],["BEST","Best"],["RECENT","Recent"]]);
+renderStats(p,[["MATCHES","Matches"],["INNINGS","Innings"],["RUNS","Runs"],["BALLS","Balls"],["NOT OUTS","Not Outs"],["STRIKERATE","SR"],["AVERAGE","Average"],["Balls/bdry","Balls/Boundary"],["FOURS","Fours"],["SIXES","Sixes"],["50","50s"],["100","100s"],["BEST","Best"],["RECENT","Recent"]]);
 }
 
 function showBowling(name){
 let p=bowlingData.find(x=>x.BOWLER===name);
 if(!p){document.getElementById("playerData").innerHTML="<h3>No Bowling Data</h3>";return;}
-renderStats(p,[["MATCHES","Matches"],["OVERS","Overs"],["WICKETS","Wickets"],["RUNS","Runs"],["ECONOMY","Economy"],["AVERAGE","Average"],["STRIKE RATE","SR"],["3-W","3W"],["5-W","5W"],["BEST","Best"],["RECENT","Recent"]]);
+renderStats(p,[["MATCHES","Matches"],["OVERS","Overs"],["WICKETS","Wickets"],["ECONOMY","Economy"],["AVERAGE","Average"],["STRIKE RATE","SR"],["3-W","3W"],["5-W","5W"],["BEST","Best"],["RECENT","Recent"]]);
 }
 
 
@@ -170,6 +170,7 @@ let h=`
 <option value="SIXES" ${sortKey==="SIXES"?"selected":""}>Sixes</option>
 <option value="Balls/bdry" ${sortKey==="Balls/bdry"?"selected":""}>Balls/Boundary</option>
 <option value="50" ${sortKey==="50"?"selected":""}>50s</option>
+<option value="100" ${sortKey==="100"?"selected":""}>100s</option>
 </select>
 `;
 let sortName={
@@ -178,7 +179,8 @@ AVERAGE:"Average",
 STRIKERATE:"Strike Rate",
 FOURS:"Fours",
 SIXES:"Sixes",
-"50":"50s"
+"50":"50s",
+"100":"100s"
 };
 s.forEach((p,i)=>{
 let img=p.BATSMAN.toLowerCase()+".jpeg";
@@ -268,7 +270,8 @@ let battingScore =
 (Math.max(0,(+p.STRIKERATE || 0) - 100)) * 2 +
 (+p.FOURS || 0) * 1 +
 (+p.SIXES || 0) * 2 +
-(+p["50"] || 0) * 25;
+(+p["50"] || 0) * 25+
+(+p["100"] || 0) * 50;
 if(!players[p.BATSMAN]){
 players[p.BATSMAN]={
 batting:0,
@@ -407,9 +410,9 @@ let milestones = [];
 /* RUNS */
 battingData.forEach(p=>{
     let value = +p.RUNS || 0;
-    let next = getNextMilestone(value,[500,750,1000,1500,2000,2500]);
+    let next = getNextMilestone(value,[500,750,1000,1500,2000,2500,3000]);
 
-    if(next && (next-value)<=50){
+    if(next && (next-value)<=100){
         milestones.push({
             player:p.BATSMAN,
             stat:"Runs",
@@ -426,7 +429,7 @@ bowlingData.forEach(p=>{
     let value = +p.WICKETS || 0;
     let next = getNextMilestone(value,[50,100,150,200,250]);
 
-    if(next && (next-value)<=12){
+    if(next && (next-value)<=15){
         milestones.push({
             player:p.BOWLER,
             stat:"Wickets",
@@ -443,7 +446,7 @@ battingData.forEach(p=>{
     let value = +p.SIXES || 0;
     let next = getNextMilestone(value,[50,100,150,200,250]);
 
-    if(next && (next-value)<=10){
+    if(next && (next-value)<=15){
         milestones.push({
             player:p.BATSMAN,
             stat:"Sixes",
@@ -460,7 +463,7 @@ battingData.forEach(p=>{
     let value = +p.FOURS || 0;
     let next = getNextMilestone(value,[50,100,150,200]);
 
-    if(next && (next-value)<=10){
+    if(next && (next-value)<=15){
         milestones.push({
             player:p.BATSMAN,
             stat:"Fours",
