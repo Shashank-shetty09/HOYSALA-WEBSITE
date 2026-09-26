@@ -446,7 +446,7 @@ battingData.forEach(p=>{
     let value = +p.SIXES || 0;
     let next = getNextMilestone(value,[50,100,150,200,250]);
 
-    if(next && (next-value)<=15){
+    if(next && (next-value)<=20){
         milestones.push({
             player:p.BATSMAN,
             stat:"Sixes",
